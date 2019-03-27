@@ -44,9 +44,13 @@ int main(int argc , char *argv[])
     memset((void *)&serv_addr, 0, sizeof(serv_addr));  // Clear it
 
     serv_addr.sin_family = AF_INET;	            // IPv4
-    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");     // Accept any address
-    serv_addr.sin_port = htons(8080);           // Set port
+    char * address = const_cast<char *>(config["server"]["ip"].asString().c_str());
+    printf("Trying to connect with %s\n", address);
+    serv_addr.sin_addr.s_addr = inet_addr(address);     // Accept any address
+    serv_addr.sin_port = htons(config["server"]["port"].asInt());           // Set port
 
+    //serv_addr.sin_addr.s_addr = inet_addr("nckuvincent.ddns.net");     // Accept any address
+    //serv_addr.sin_port = htons(10418);           // Set port
     if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr))==-1 ){
         ERROR("Fail to connect");
         return 0;
