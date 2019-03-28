@@ -8,7 +8,6 @@
 #include<sys/types.h>
 #include<unistd.h>
 
-#include <jsoncpp/json/json.h>
 #include <fstream>
 using namespace std;
 
@@ -18,13 +17,22 @@ using namespace std;
 #define ERROR( msg ) printf("\033[0;32;31mError: %s\033[m\n", msg)
 #define INFO( msg ) printf("\033[0;32;32mInfo: %s\033[m\n", msg)
 
-const string config_filename="../config.json";
+const char* config_filename="../config.txt";
 
 int main(int argc , char *argv[])
 {
-    Json::Value config;
-    std::ifstream config_fs(config_filename, std::ifstream::binary);
-    config_fs >> config;
+    char hostname[HOST_MAX_LEN];
+    char port_number[HOST_MAX_LEN];
+    FILE *fp = fopen(config_filename, "r");
+    if(fp == NULL 
+            || fgets(hostname, HOST_MAX_LEN, fp) == NULL 
+            || fgets(port_number, HOST_MAX_LEN, fp) == NULL){
+        ERROR("Error in reading from config file.");
+        return 0;
+    }
+    hostname[strlen(hostname)-1] = '\0';
+    port_number[strlen(port_number)-1] = '\0';
+   
     /* Socket connection build up */
     int sockfd = 0;
     // AF_INET:  Transfer data between different computer (IPv4)
@@ -45,7 +53,7 @@ int main(int argc , char *argv[])
 
     serv_addr.sin_family = AF_INET;	            // IPv4
     serv_addr.sin_addr.s_addr = INADDR_ANY;     // Accept any address
-    serv_addr.sin_port = htons(config["server"]["port"].asInt());           // Set port
+    serv_addr.sin_port = htons(atoi(port_number));           // Set port
     
     bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
     
