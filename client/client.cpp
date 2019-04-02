@@ -58,9 +58,9 @@ int main(int argc , char *argv[])
         printf("Trying to connect with %s:%s\n", hostname, port_number);
         if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 || res!=NULL){
             INFO("Server connected!");
-            if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
+            if( connect(sockfd, res->ai_addr, res->ai_addrlen) > 0 ){
                 const char* msg = "Fuck!\n";
-                send(sockfd, msg, strlen(msg), 0);
+                write(sockfd, msg, strlen(msg));
                 close(sockfd);
             }
         }
