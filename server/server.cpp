@@ -51,7 +51,7 @@ int main(int argc , char *argv[])
     socklen_t socklen;
     memset((void *)&serv_addr, 0, sizeof(serv_addr));  // Clear it
 
-    serv_addr.sin_family =aaaaaaaaaaaaaaaaaaaaaaaaaaa AF_INET;	            // IPv4
+    serv_addr.sin_family = AF_INET;	            // IPv4
     serv_addr.sin_addr.s_addr = INADDR_ANY;     // Accept any address
     serv_addr.sin_port = htons(atoi(port_number));           // Set port
     
