@@ -71,10 +71,16 @@ int main(int argc , char *argv[])
             ERROR("Fail to accept");
         else{
             INFO("Connection established!");
-            
             // Clear old data
             memset((void *)buffer, 0, sizeof(buffer));
-            int err = read(sock_cnn, buffer, BUFFER_SIZE);
+            
+            //struct sockaddr_storage peer_addr;
+            //socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
+
+            //recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *) &peer_addr, &peer_addr_len);
+            recv(sock_cnn, buffer, BUFFER_SIZE, 0);
+            char msg[100] = "Hello";
+            send(sock_cnn, msg, strlen(msg), 0);
             printf("Get message: %s", buffer);
         }
     }

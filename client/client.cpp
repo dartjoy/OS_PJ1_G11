@@ -61,7 +61,14 @@ int main(int argc , char *argv[])
             if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
                 const char* msg = "Fuck!\n";
                 send(sockfd, msg, strlen(msg), 0);
-                close(sockfd);
+                char re[100];
+                recv(sockfd, re, 100, 0);
+                printf("%s\n", re);
+                //write(sockfd, msg, strlen(msg));
+                //close(sockfd);
+                sleep(10000);
+                send(sockfd, msg, strlen(msg), 0);
+                sleep(10000);
             }
         }
         else
