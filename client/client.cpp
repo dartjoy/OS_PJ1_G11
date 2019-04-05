@@ -59,16 +59,17 @@ int main(int argc , char *argv[])
         if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 || res != NULL){
             INFO("Server connected!");
             if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
-                const char* msg = "Fuck!\n";
+                const char* msg = "Hello this come from ncku!\n";
                 send(sockfd, msg, strlen(msg), 0);
                 char re[100];
                 recv(sockfd, re, 100, 0);
                 printf("%s\n", re);
                 //write(sockfd, msg, strlen(msg));
                 //close(sockfd);
-                sleep(10000);
+                sleep(1);
                 send(sockfd, msg, strlen(msg), 0);
-                sleep(10000);
+                sleep(1);
+                close(sockfd);
             }
         }
         else
