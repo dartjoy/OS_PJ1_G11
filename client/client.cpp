@@ -48,7 +48,7 @@ int main(int argc , char *argv[])
     }
 
     struct addrinfo dns_addr, *res=NULL;
-    while( res==NULL ){
+    while( res == NULL ){
         // Clear variables
         memset((void *)&dns_addr, 0, sizeof(dns_addr));  // Clear it
         dns_addr.ai_family = AF_INET;
@@ -56,7 +56,7 @@ int main(int argc , char *argv[])
         dns_addr.ai_protocol = 0;
 
         printf("Trying to connect with %s:%s\n", hostname, port_number);
-        if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 || res!=NULL){
+        if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 || res != NULL){
             INFO("Server connected!");
             if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
                 const char* msg = "Fuck!\n";
