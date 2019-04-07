@@ -59,16 +59,21 @@ int main(int argc , char *argv[])
         if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 || res != NULL){
             INFO("Server connected!");
             if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
-                const char* msg = "Fuck!\n";
-                send(sockfd, msg, strlen(msg), 0);
-                char re[100];
-                recv(sockfd, re, 100, 0);
-                printf("%s\n", re);
+                while(1){
+                    char s[100] = "";
+                    cin >> s;
+                    send(sockfd, s, strlen(s), 0);
+                    char re[100] = "";
+                    if( recv(sockfd, re, 100, 0)>0 )
+                        printf("%s\n", re);
+                    else{
+                        cout << "Connection lost!\n";
+                        close(sockfd);
+                    }
+                }
                 //write(sockfd, msg, strlen(msg));
                 //close(sockfd);
-                sleep(10000);
-                send(sockfd, msg, strlen(msg), 0);
-                sleep(10000);
+                //send(sockfd, msg, strlen(msg), 0);
             }
         }
         else
