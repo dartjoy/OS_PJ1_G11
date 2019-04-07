@@ -109,7 +109,7 @@ int main(int argc , char *argv[])
         for(int i = 0; i < MAX_CLIENT; i++){
             if( sock_clients[i] == 0 ){
                 sock_clients[i] = sockclit;
-                break;
+                break;/*
 =======
         for(int i=0; i<MAX_CLIENT; i++){
             // Clear old data
@@ -135,7 +135,7 @@ int main(int argc , char *argv[])
                 else if(status == 0)
                     sock_clients[i] = 0;
 >>>>>>> 7a910fe1fb1cbd5c90c3ed3b38cc72b3acd74905
-            }
+            }*/
         }
 
 		if(sockclit > 0) INFO("Get New Connection");
