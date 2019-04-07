@@ -63,14 +63,27 @@ int main(int argc , char *argv[])
                     char s[100] = "";
                     cin >> s;
                     send(sockfd, s, strlen(s), 0);
+<<<<<<< HEAD
                     char re[MAX_MESSAGE] = "";
                     if( recv(sockfd, re, MAX_MESSAGE, 0) > 0 )
+=======
+                    char re[100] = "";
+                    if( recv(sockfd, re, 100, 0)>0 )
+>>>>>>> 7a910fe1fb1cbd5c90c3ed3b38cc72b3acd74905
                         printf("%s\n", re);
                     else{
                         cout << "Connection lost!\n";
                         close(sockfd);
+<<<<<<< HEAD
                 	}
 				}
+=======
+                    }
+                }
+                //write(sockfd, msg, strlen(msg));
+                //close(sockfd);
+                //send(sockfd, msg, strlen(msg), 0);
+>>>>>>> 7a910fe1fb1cbd5c90c3ed3b38cc72b3acd74905
             }
         }
         else

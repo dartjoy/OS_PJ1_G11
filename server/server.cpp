@@ -103,12 +103,38 @@ int main(int argc , char *argv[])
     pthread_t daemon_thread[MAX_CLIENT];
 
     while(1){
+<<<<<<< HEAD
 		int sockclit = accept(sockfd, (struct sockaddr *)&serv_addr, &socklen);
 
         for(int i = 0; i < MAX_CLIENT; i++){
             if( sock_clients[i] == 0 ){
                 sock_clients[i] = sockclit;
                 break;
+=======
+        for(int i=0; i<MAX_CLIENT; i++){
+            // Clear old data
+            memset((void *)buffer, 0, sizeof(buffer));
+
+            //struct sockaddr_storage peer_addr;
+            //socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
+
+            //recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *) &peer_addr, &peer_addr_len);
+            if(sock_clients[i]!=0){
+                int status = recv(sock_clients[i], buffer, BUFFER_SIZE, 0);
+
+                if( status > 0 && strlen(buffer)>0){
+                    for(int j=0; j<MAX_CLIENT; j++){
+                        if(sock_clients[j] != 0)
+                        send(sock_clients[j], buffer, strlen(buffer), 0);
+                    }
+                    //char msg[100] = "Hello";
+                    //send(sock_clients[i], msg, strlen(msg), 0);
+                    printf("Get message: %s", buffer);
+                    memset((void *)&buffer, 0, sizeof(buffer));
+                }
+                else if(status == 0)
+                    sock_clients[i] = 0;
+>>>>>>> 7a910fe1fb1cbd5c90c3ed3b38cc72b3acd74905
             }
         }
 
