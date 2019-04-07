@@ -24,23 +24,37 @@ const char* config_filename="../config.txt";
 int sockfd = 0;
 int sock_clients[MAX_CLIENT];
 struct sockaddr_in serv_addr;
+char buffer[BUFFER_SIZE];
+char client_message[MAX_MESSAGE];
 socklen_t socklen;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void* daemon_accept_client(void* data){
-    while(1){
-        int sock_cnn = accept(sockfd, (struct sockaddr *)&serv_addr, &socklen);
-        if( sock_cnn < 0 )
-            ERROR("Fail to accept");
-        else{
-            INFO("Get New Connection");
-            for(int i=0; i<MAX_CLIENT; i++){
-                if( sock_clients[i]==0 ){
-                    sock_clients[i] = sock_cnn;
-                    break;
-                }
-            }
-        }
-    }
+	int newSocket = *((int *)data);
+	
+	while(1){
+		recv(newSocket, client_message, MAX_MESSAGE, 0);
+
+		pthread_mutex_lock(&lock);
+
+		char *message = (char *)(malloc(sizeof(client_message) + 20));
+    	memset((void *)message, 0, sizeof(* message));
+		strcpy(message, "Hello Client : ");
+		strcat(message, client_message);
+		strcpy(buffer, message);
+
+		free(message);
+    	memset((void *)&client_message, 0, sizeof(client_message));
+
+		pthread_mutex_unlock(&lock);		  
+
+		send(newSocket, buffer, strlen(buffer), 0);
+
+	    memset((void *)&buffer, 0, sizeof(buffer));
+	}
+//	close(newSocket);
+
+	pthread_exit(NULL);
 }
 
 int main(int argc , char *argv[])
@@ -58,8 +72,7 @@ int main(int argc , char *argv[])
     port_number[strlen(port_number)-1] = '\0';
 
     /* Socket connection build up */
-    for(int i=0;i<MAX_CLIENT;i++)
-        sock_clients[i] = 0;
+    for(int i = 0; i < MAX_CLIENT; ++i) sock_clients[i] = 0;
     // AF_INET:  Transfer data between different computer (IPv4)
     // AF_INET6: With IPv6
     // AF_UNIX/AF_LOCAL: Transfer between process(In the same computer)
@@ -85,33 +98,24 @@ int main(int argc , char *argv[])
         return 0;
     }
     INFO("Listening...");
-    char data[10] = "Daemon";
-    pthread_t daemon_thread;
-    pthread_create(&daemon_thread, NULL, daemon_accept_client, (void*)data);
 
-    char buffer[BUFFER_SIZE];
+	int i = 0;
+    pthread_t daemon_thread[MAX_CLIENT];
+
     while(1){
-        for(int i=0; i<MAX_CLIENT; i++){
-            // Clear old data
-            memset((void *)buffer, 0, sizeof(buffer));
+		int sockclit = accept(sockfd, (struct sockaddr *)&serv_addr, &socklen);
 
-            //struct sockaddr_storage peer_addr;
-            //socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
-
-            //recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *) &peer_addr, &peer_addr_len);
-            if(sock_clients[i]!=0){
-                int status = recv(sock_clients[i], buffer, BUFFER_SIZE, 0);
-
-                if( status > 0 && strlen(buffer)>0){
-                    char msg[100] = "Hello";
-                    send(sock_clients[i], msg, strlen(msg), 0);
-                    printf("Get message: %s", buffer);
-                    memset((void *)&buffer, 0, sizeof(buffer));
-                }
-                else if(status == 0)
-                    sock_clients[i] = 0;
+        for(int i = 0; i < MAX_CLIENT; i++){
+            if( sock_clients[i] == 0 ){
+                sock_clients[i] = sockclit;
+                break;
             }
         }
+
+		if(sockclit > 0) INFO("Get New Connection");
+
+		if(pthread_create(&daemon_thread[i++], NULL, daemon_accept_client, &sockclit) != 0)
+			INFO("Failed to create thread");
     }
     return 0;
 }

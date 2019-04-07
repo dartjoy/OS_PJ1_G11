@@ -59,22 +59,23 @@ int main(int argc , char *argv[])
         if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 || res != NULL){
             INFO("Server connected!");
             if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
-                const char* msg = "Hello this come from ncku!\n";
-                send(sockfd, msg, strlen(msg), 0);
-                char re[100];
-                recv(sockfd, re, 100, 0);
-                printf("%s\n", re);
-                //write(sockfd, msg, strlen(msg));
-                //close(sockfd);
-                sleep(1);
-                send(sockfd, msg, strlen(msg), 0);
-                sleep(1);
-                close(sockfd);
+                while(1){
+                    char s[100] = "";
+                    cin >> s;
+                    send(sockfd, s, strlen(s), 0);
+                    char re[MAX_MESSAGE] = "";
+                    if( recv(sockfd, re, MAX_MESSAGE, 0) > 0 )
+                        printf("%s\n", re);
+                    else{
+                        cout << "Connection lost!\n";
+                        close(sockfd);
+                	}
+				}
             }
         }
         else
             ERROR("Fail to get address");
     }
-    freeaddrinfo(res);
+//    freeaddrinfo(res);
     return 0;
 }
