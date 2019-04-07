@@ -103,8 +103,12 @@ int main(int argc , char *argv[])
                 int status = recv(sock_clients[i], buffer, BUFFER_SIZE, 0);
 
                 if( status > 0 && strlen(buffer)>0){
-                    char msg[100] = "Hello";
-                    send(sock_clients[i], msg, strlen(msg), 0);
+                    for(int j=0; j<MAX_CLIENT; j++){
+                        if(sock_clients[j] != 0)
+                        send(sock_clients[j], buffer, strlen(buffer), 0);
+                    }
+                    //char msg[100] = "Hello";
+                    //send(sock_clients[i], msg, strlen(msg), 0);
                     printf("Get message: %s", buffer);
                     memset((void *)&buffer, 0, sizeof(buffer));
                 }
