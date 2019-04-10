@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <pthread.h>
 
 #include <fstream>
 using namespace std;
@@ -19,7 +20,21 @@ using namespace std;
 #define INFO( msg ) printf("\033[0;32;32mInfo: %s\033[m\n", msg)
 
 const char* config_filename="../config.txt";
+int sockfd = 0;
 
+void* daemon_recv(void* data){
+    char re[MAX_MSG_LEN] = "";
+    while(1){
+        if( recv(sockfd, re, MAX_MSG_LEN, 0)>0 )
+            cout << re << endl;
+        else{
+            cout << "Connection lost!\n";
+            close(sockfd);
+            break;
+        }
+    }
+    pthread_exit(NULL);
+}
 int main(int argc , char *argv[])
 {
     char hostname[HOST_MAX_LEN];
@@ -35,7 +50,6 @@ int main(int argc , char *argv[])
     port_number[strlen(port_number)-1] = '\0';
 
     /* Socket connection build up */
-    int sockfd = 0;
     // AF_INET:  Transfer data between different computer (IPv4)
     // AF_INET6: With IPv6
     // AF_UNIX/AF_LOCAL: Transfer between process(In the same computer)
@@ -56,24 +70,21 @@ int main(int argc , char *argv[])
         dns_addr.ai_protocol = 0;
 
         printf("Trying to connect with %s:%s\n", hostname, port_number);
-        if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 || res != NULL){
+        if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 && res != NULL){
             INFO("Server connected!");
             if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
+                pthread_t daemon;
+                pthread_create(&daemon, NULL, daemon_recv, NULL);
+
+                char msg[MAX_MSG_LEN] = "";
                 while(1){
-                    char s[100] = "";
-                    cin >> s;
-                    send(sockfd, s, strlen(s), 0);
-                    char re[100] = "";
-                    if( recv(sockfd, re, 100, 0)>0 )
-                        printf("%s\n", re);
-                    else{
-                        cout << "Connection lost!\n";
-                        close(sockfd);
-                    }
+                    cin >> msg;
+                    send(sockfd, msg, strlen(msg), 0);
                 }
                 //write(sockfd, msg, strlen(msg));
                 //close(sockfd);
                 //send(sockfd, msg, strlen(msg), 0);
+                pthread_join(daemon, NULL);
             }
         }
         else
