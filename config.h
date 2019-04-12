@@ -6,4 +6,5 @@
 #define HOST_MAX_LEN 30     // Name length of host
 #define MAX_CLIENT 30
 #define MAX_MESSAGE 2000
+#define MAX_USERNAME 20
 #endif
