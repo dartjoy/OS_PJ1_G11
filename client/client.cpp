@@ -85,7 +85,7 @@ int main(int argc , char *argv[])
                 char msg[MAX_MESSAGE] = "";
                 while(1){
                     memset((void*)msg, 0, sizeof(msg));
-                    cin >> msg;
+                    cin.getline(msg, MAX_MESSAGE);
                     send(sockfd, msg, strlen(msg), 0);
                 }
             }

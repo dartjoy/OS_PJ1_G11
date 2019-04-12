@@ -35,39 +35,43 @@ void* daemon_accept_client(void* data){
     int newSocket = sock_clients[newSocket_index];
     bool greeting_msg = true;
     while(1){
-        recv(newSocket, client_message, MAX_MESSAGE, 0);
+        if( recv(newSocket, client_message, MAX_MESSAGE, 0)>0 ){
 
-        pthread_mutex_lock(&lock);
+            pthread_mutex_lock(&lock);
 
-        char *message = (char *)(malloc(sizeof(client_message) + 20));
-        memset((void *)message, 0, sizeof(*message));
+            char *message = (char *)(malloc(sizeof(client_message) + 20));
+            memset((void *)message, 0, sizeof(*message));
 
-        if(greeting_msg){
-            strcpy(username[newSocket_index], client_message);
-            strcpy(message, client_message);
-            strcat(message, " join the chat.");
-            greeting_msg = false;
+            if(greeting_msg){
+                strcpy(username[newSocket_index], client_message);
+                strcpy(message, client_message);
+                strcat(message, " join the chat.");
+                greeting_msg = false;
+                cout << message <<endl;
+            }
+            else{
+                strcpy(message, username[newSocket_index]);
+                strcat(message, ": ");
+                strcat(message, client_message);
+            }
+            strcpy(buffer, message);
+            free(message);
+            memset((void *)&client_message, 0, sizeof(client_message));
+
+            pthread_mutex_unlock(&lock);		  
+            for(int i = 0; i < MAX_CLIENT; i++){
+                if( sock_clients[i] != 0 ){
+                    send(sock_clients[i], buffer, strlen(buffer), 0);
+                }
+            }
+
+            memset((void *)&buffer, 0, sizeof(buffer));
         }
         else{
-            strcpy(message, username[newSocket_index]);
-            strcat(message, ": ");
-            strcat(message, client_message);
+            close(newSocket);
+            break;
         }
-        strcpy(buffer, message);
-        free(message);
-        memset((void *)&client_message, 0, sizeof(client_message));
-
-        pthread_mutex_unlock(&lock);		  
-        for(int i = 0; i < MAX_CLIENT; i++){
-            if( sock_clients[i] != 0 ){
-                send(sock_clients[i], buffer, strlen(buffer), 0);
-            }
-        }
-
-        memset((void *)&buffer, 0, sizeof(buffer));
-    }
-    //	close(newSocket);
-
+    }	
     pthread_exit(NULL);
 }
 
