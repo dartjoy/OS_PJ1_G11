@@ -34,26 +34,34 @@ void* daemon_accept_client(void* data){
     int newSocket_index = *((int *)data);
     int newSocket = sock_clients[newSocket_index];
     bool greeting_msg = true;
-    while(1){
+    bool client_alive = true;
+    while(client_alive){
         if( recv(newSocket, client_message, MAX_MESSAGE, 0)>0 ){
-
-            pthread_mutex_lock(&lock);
-
             char *message = (char *)(malloc(sizeof(client_message) + 20));
             memset((void *)message, 0, sizeof(*message));
-
+            
             if(greeting_msg){
                 strcpy(username[newSocket_index], client_message);
                 strcpy(message, client_message);
                 strcat(message, " join the chat.");
                 greeting_msg = false;
-                cout << message <<endl;
+                cout << message << endl;
+            }
+            else if( strncmp(client_message, "exit", MAX_MESSAGE)==0 ){
+                strcpy(message, username[newSocket_index]);
+                strcat(message, " leave the chat.");
+                cout << message << endl;
+                close(newSocket);
+                sock_clients[newSocket_index] = 0;
+                client_alive = false;
             }
             else{
                 strcpy(message, username[newSocket_index]);
                 strcat(message, ": ");
                 strcat(message, client_message);
-            }
+            } 
+            
+            pthread_mutex_lock(&lock);
             strcpy(buffer, message);
             free(message);
             memset((void *)&client_message, 0, sizeof(client_message));
@@ -66,10 +74,6 @@ void* daemon_accept_client(void* data){
             }
 
             memset((void *)&buffer, 0, sizeof(buffer));
-        }
-        else{
-            close(newSocket);
-            break;
         }
     }	
     pthread_exit(NULL);

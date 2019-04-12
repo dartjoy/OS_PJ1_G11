@@ -18,19 +18,29 @@ using namespace std;
 
 #define ERROR( msg ) printf("\033[0;32;31mError: %s\033[m\n", msg)
 #define INFO( msg ) printf("\033[0;32;32mInfo: %s\033[m\n", msg)
+#define MSG( msg ) printf("\x1b[36m%s\033[m\n", msg)
 
 const char* config_filename="../config.txt";
 int sockfd = 0;
+/*
+void print_msg(char *msg){
+    char *prefix = strtok(msg, ":");
+    while(prefix != NULL){
+        printf("%s", prefix);
+        prefix = strtok(NULL, ":");
+    }
+    //printf("%s\n", prefix);
+}*/
 
 void* daemon_recv(void* data){
     char re[MAX_MESSAGE] = "";
     while(1){
         if( recv(sockfd, re, MAX_MESSAGE, 0)>0 ){
-            cout << re << endl;
+            MSG(re);
             memset((void*)re, 0, sizeof(re));
         }
         else{
-            cout << "Connection lost!\n";
+            ERROR("Connection lost!");
             close(sockfd);
             break;
         }
@@ -64,7 +74,7 @@ int main(int argc , char *argv[])
     }
 
     char username[MAX_USERNAME] = "";
-    cout << "Please enter username" << endl;
+    INFO("Please enter username");
     cin >> username;
     struct addrinfo dns_addr, *res=NULL;
     while( res == NULL ){
@@ -86,6 +96,12 @@ int main(int argc , char *argv[])
                 while(1){
                     memset((void*)msg, 0, sizeof(msg));
                     cin.getline(msg, MAX_MESSAGE);
+                    if( strncmp(msg, "exit", MAX_MESSAGE) == 0 ){
+                        strcpy(msg, "exit");
+                        send(sockfd, msg, strlen(msg), 0);
+                        break;
+                    }
+                    cout << "\033[A\33[2k"; // Move cursor to previous line and clear it
                     send(sockfd, msg, strlen(msg), 0);
                 }
             }
@@ -94,5 +110,6 @@ int main(int argc , char *argv[])
         }
     }
     freeaddrinfo(res);
+    close(sockfd);
     return 0;
 }
