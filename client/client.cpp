@@ -25,8 +25,10 @@ int sockfd = 0;
 void* daemon_recv(void* data){
     char re[MAX_MESSAGE] = "";
     while(1){
-        if( recv(sockfd, re, MAX_MESSAGE, 0)>0 )
+        if( recv(sockfd, re, MAX_MESSAGE, 0)>0 ){
             cout << re << endl;
+            memset((void*)re, 0, sizeof(re));
+        }
         else{
             cout << "Connection lost!\n";
             close(sockfd);
@@ -61,6 +63,9 @@ int main(int argc , char *argv[])
         return 0;
     }
 
+    char username[MAX_USERNAME] = "";
+    cout << "Please enter username" << endl;
+    cin >> username;
     struct addrinfo dns_addr, *res=NULL;
     while( res == NULL ){
         // Clear variables
@@ -73,11 +78,13 @@ int main(int argc , char *argv[])
         if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 && res != NULL){
             INFO("Server connected!");
             if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
+                send(sockfd, username, strlen(username), 0);
                 pthread_t daemon;
                 pthread_create(&daemon, NULL, daemon_recv, NULL);
 
                 char msg[MAX_MESSAGE] = "";
                 while(1){
+                    memset((void*)msg, 0, sizeof(msg));
                     cin >> msg;
                     send(sockfd, msg, strlen(msg), 0);
                 }
@@ -85,7 +92,7 @@ int main(int argc , char *argv[])
             else
                 ERROR("Fail to get address");
         }
-        //    freeaddrinfo(res);
-        return 0;
     }
+    freeaddrinfo(res);
+    return 0;
 }
