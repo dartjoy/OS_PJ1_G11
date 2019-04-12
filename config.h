@@ -5,5 +5,5 @@
 #define BUFFER_SIZE 100
 #define HOST_MAX_LEN 30     // Name length of host
 #define MAX_CLIENT 30
-#define MAX_MSG_LEN 100
+#define MAX_MESSAGE 2000
 #endif

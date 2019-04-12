@@ -23,9 +23,9 @@ const char* config_filename="../config.txt";
 int sockfd = 0;
 
 void* daemon_recv(void* data){
-    char re[MAX_MSG_LEN] = "";
+    char re[MAX_MESSAGE] = "";
     while(1){
-        if( recv(sockfd, re, MAX_MSG_LEN, 0)>0 )
+        if( recv(sockfd, re, MAX_MESSAGE, 0)>0 )
             cout << re << endl;
         else{
             cout << "Connection lost!\n";
@@ -76,20 +76,16 @@ int main(int argc , char *argv[])
                 pthread_t daemon;
                 pthread_create(&daemon, NULL, daemon_recv, NULL);
 
-                char msg[MAX_MSG_LEN] = "";
+                char msg[MAX_MESSAGE] = "";
                 while(1){
                     cin >> msg;
                     send(sockfd, msg, strlen(msg), 0);
                 }
-                //write(sockfd, msg, strlen(msg));
-                //close(sockfd);
-                //send(sockfd, msg, strlen(msg), 0);
-                pthread_join(daemon, NULL);
             }
+            else
+                ERROR("Fail to get address");
         }
-        else
-            ERROR("Fail to get address");
+        //    freeaddrinfo(res);
+        return 0;
     }
-    freeaddrinfo(res);
-    return 0;
 }
