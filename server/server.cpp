@@ -20,6 +20,7 @@ using namespace std;
 #define INFO( msg ) printf("\033[0;32;32mInfo: %s\033[m\n", msg)
 
 const char* config_filename="../config.txt";
+const char* save_file = "../save.txt";
 
 int sockfd = 0;
 int sock_clients[MAX_CLIENT];
@@ -29,6 +30,7 @@ char buffer[BUFFER_SIZE];
 char client_message[MAX_MESSAGE];
 socklen_t socklen;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+ofstream save;
 
 void* daemon_accept_client(void* data){
     int newSocket_index = *((int *)data);
@@ -36,7 +38,7 @@ void* daemon_accept_client(void* data){
     bool greeting_msg = true;
     bool client_alive = true;
     while(client_alive){
-        if( recv(newSocket, client_message, MAX_MESSAGE, 0)>0 ){
+        if( recv(newSocket, client_message, MAX_MESSAGE, 0) > 0 ){
             char *message = (char *)(malloc(sizeof(client_message) + 20));
             memset((void *)message, 0, sizeof(*message));
             
@@ -47,7 +49,7 @@ void* daemon_accept_client(void* data){
                 greeting_msg = false;
                 cout << message << endl;
             }
-            else if( strncmp(client_message, "exit", MAX_MESSAGE)==0 ){
+            else if( strncmp(client_message, "exit", MAX_MESSAGE) == 0 ){
                 strcpy(message, username[newSocket_index]);
                 strcat(message, " leave the chat.");
                 cout << message << endl;
@@ -63,6 +65,7 @@ void* daemon_accept_client(void* data){
             
             pthread_mutex_lock(&lock);
             strcpy(buffer, message);
+			save << message <<endl;
             free(message);
             memset((void *)&client_message, 0, sizeof(client_message));
 
@@ -124,6 +127,8 @@ int main(int argc , char *argv[])
     int i = 0;
     pthread_t daemon_thread[MAX_CLIENT];
 
+	save.open(save_file);
+
     while(1){
         int sockclit = accept(sockfd, (struct sockaddr *)&serv_addr, &socklen);
         int sock_index;
@@ -136,7 +141,6 @@ int main(int argc , char *argv[])
         }
         if(sockclit > 0) INFO("Get New Connection");
 
-        //if(pthread_create(&daemon_thread[i++], NULL, daemon_accept_client, &sockclit) != 0)
         if(pthread_create(&daemon_thread[i++], NULL, daemon_accept_client, &sock_index) != 0)
             INFO("Failed to create thread");
     }

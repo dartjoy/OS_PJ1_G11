@@ -35,7 +35,7 @@ void print_msg(char *msg){
 void* daemon_recv(void* data){
     char re[MAX_MESSAGE] = "";
     while(1){
-        if( recv(sockfd, re, MAX_MESSAGE, 0)>0 ){
+        if( recv(sockfd, re, MAX_MESSAGE, 0) > 0 ){
             MSG(re);
             memset((void*)re, 0, sizeof(re));
         }
@@ -86,7 +86,7 @@ int main(int argc , char *argv[])
 
         printf("Trying to connect with %s:%s\n", hostname, port_number);
         if(getaddrinfo(hostname, port_number, &dns_addr, &res) == 0 && res != NULL){
-            INFO("Server connected!");
+            INFO("Server connected!\n");
             if( connect(sockfd, res->ai_addr, res->ai_addrlen) == 0 ){
                 send(sockfd, username, strlen(username), 0);
                 pthread_t daemon;
