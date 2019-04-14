@@ -7,6 +7,7 @@
 #include<netinet/in.h>
 #include<sys/types.h>
 #include<unistd.h>
+#include <signal.h>
 
 #include<pthread.h>
 
@@ -31,6 +32,12 @@ char client_message[MAX_MESSAGE];
 socklen_t socklen;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 ofstream save;
+
+void Exit(int sig){
+	save.close();
+	cout << "\033[A\33[k" << endl;
+	exit(0);
+}
 
 void* daemon_accept_client(void* data){
     int newSocket_index = *((int *)data);
@@ -84,6 +91,8 @@ void* daemon_accept_client(void* data){
 
 int main(int argc , char *argv[])
 {
+	signal(SIGINT, Exit);
+
     char hostname[HOST_MAX_LEN];
     char port_number[HOST_MAX_LEN];
     FILE *fp = fopen(config_filename, "r");

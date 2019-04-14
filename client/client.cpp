@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <string.h>
 #include <iostream>
+#include <string>
+#include <sstream>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -31,6 +33,12 @@ void print_msg(char *msg){
     }
     //printf("%s\n", prefix);
 }*/
+/*
+void Ctrl_C_Handler(int sig){
+//	const char *trmnt = "exit";
+//	send(sockfd, trmnt, strlen(trmnt), 0);
+                    cout << "\033[A\33[2k"; // Move cursor to previous line and clear it
+}*/
 
 void* daemon_recv(void* data){
     char re[MAX_MESSAGE] = "";
@@ -40,13 +48,14 @@ void* daemon_recv(void* data){
             memset((void*)re, 0, sizeof(re));
         }
         else{
-            ERROR("Connection lost!");
+            INFO("Connection Treminate!");
             close(sockfd);
             break;
         }
     }
     pthread_exit(NULL);
 }
+
 int main(int argc , char *argv[])
 {
     char hostname[HOST_MAX_LEN];
