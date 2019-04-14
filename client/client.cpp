@@ -24,23 +24,8 @@ using namespace std;
 
 const char* config_filename="../config.txt";
 int sockfd = 0;
-/*
-void print_msg(char *msg){
-    char *prefix = strtok(msg, ":");
-    while(prefix != NULL){
-        printf("%s", prefix);
-        prefix = strtok(NULL, ":");
-    }
-    //printf("%s\n", prefix);
-}*/
-/*
-void Ctrl_C_Handler(int sig){
-//	const char *trmnt = "exit";
-//	send(sockfd, trmnt, strlen(trmnt), 0);
-                    cout << "\033[A\33[2k"; // Move cursor to previous line and clear it
-}*/
 
-void* daemon_recv(void* data){
+void* daemon_recv(void* data){ //keep receive message from server
     char re[MAX_MESSAGE] = "";
     while(1){
         if( recv(sockfd, re, MAX_MESSAGE, 0) > 0 ){
@@ -85,7 +70,7 @@ int main(int argc , char *argv[])
     char username[MAX_USERNAME] = "";
     INFO("Please enter username");
     cin >> username;
-    struct addrinfo dns_addr, *res=NULL;
+    struct addrinfo dns_addr, *res = NULL;
     while( res == NULL ){
         // Clear variables
         memset((void *)&dns_addr, 0, sizeof(dns_addr));  // Clear it
@@ -105,7 +90,7 @@ int main(int argc , char *argv[])
                 while(1){
                     memset((void*)msg, 0, sizeof(msg));
                     cin.getline(msg, MAX_MESSAGE);
-                    if( strncmp(msg, "exit", MAX_MESSAGE) == 0 ){
+                    if( strncmp(msg, "exit", MAX_MESSAGE) == 0 ){ //client terminate condition
                         strcpy(msg, "exit");
                         send(sockfd, msg, strlen(msg), 0);
                         break;

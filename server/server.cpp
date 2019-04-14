@@ -23,23 +23,23 @@ using namespace std;
 const char* config_filename="../config.txt";
 const char* save_file = "../save.txt";
 
-int sockfd = 0;
-int sock_clients[MAX_CLIENT];
+int sockfd = 0; //main socket
+int sock_clients[MAX_CLIENT]; //save state of whether a connection is establish
 char username[BUFFER_SIZE][MAX_USERNAME];
 struct sockaddr_in serv_addr;
 char buffer[BUFFER_SIZE];
-char client_message[MAX_MESSAGE];
+char client_message[MAX_MESSAGE]; 
 socklen_t socklen;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-ofstream save;
+ofstream save; //collect messages
 
-void Exit(int sig){
+void Exit(int sig){ //handle ctrl-c signal
 	save.close();
-	cout << "\033[A\33[k" << endl;
+	cout << "\033[A\33[k" << endl; //move cursor and clear
 	exit(0);
 }
 
-void* daemon_accept_client(void* data){
+void* daemon_accept_client(void* data){ //thread that handle the request
     int newSocket_index = *((int *)data);
     int newSocket = sock_clients[newSocket_index];
     bool greeting_msg = true;
@@ -49,14 +49,14 @@ void* daemon_accept_client(void* data){
             char *message = (char *)(malloc(sizeof(client_message) + 20));
             memset((void *)message, 0, sizeof(*message));
             
-            if(greeting_msg){
+            if(greeting_msg){ //welcome message
                 strcpy(username[newSocket_index], client_message);
                 strcpy(message, client_message);
                 strcat(message, " join the chat.");
                 greeting_msg = false;
                 cout << message << endl;
             }
-            else if( strncmp(client_message, "exit", MAX_MESSAGE) == 0 ){
+            else if( strncmp(client_message, "exit", MAX_MESSAGE) == 0 ){ //leave message
                 strcpy(message, username[newSocket_index]);
                 strcat(message, " leave the chat.");
                 cout << message << endl;
@@ -64,26 +64,26 @@ void* daemon_accept_client(void* data){
                 sock_clients[newSocket_index] = 0;
                 client_alive = false;
             }
-            else{
+            else{ //copy message to send to other client
                 strcpy(message, username[newSocket_index]);
                 strcat(message, ": ");
                 strcat(message, client_message);
             } 
             
-            pthread_mutex_lock(&lock);
+            pthread_mutex_lock(&lock); //cretical section(only one thread can access buffer and send message to other client at a time)
             strcpy(buffer, message);
-			save << message <<endl;
+			save << message <<endl; //save message to database
             free(message);
             memset((void *)&client_message, 0, sizeof(client_message));
 
-            pthread_mutex_unlock(&lock);		  
-            for(int i = 0; i < MAX_CLIENT; i++){
+            for(int i = 0; i < MAX_CLIENT; i++){ //broadcast
                 if( sock_clients[i] != 0 ){
                     send(sock_clients[i], buffer, strlen(buffer), 0);
                 }
             }
 
             memset((void *)&buffer, 0, sizeof(buffer));
+            pthread_mutex_unlock(&lock);	  
         }
     }	
     pthread_exit(NULL);
@@ -91,8 +91,9 @@ void* daemon_accept_client(void* data){
 
 int main(int argc , char *argv[])
 {
-	signal(SIGINT, Exit);
+	signal(SIGINT, Exit); //signal handler
 
+	/*initialize everything*/
     char hostname[HOST_MAX_LEN];
     char port_number[HOST_MAX_LEN];
     FILE *fp = fopen(config_filename, "r");
@@ -138,7 +139,7 @@ int main(int argc , char *argv[])
 
 	save.open(save_file);
 
-    while(1){
+    while(1){ //main section to accept connection
         int sockclit = accept(sockfd, (struct sockaddr *)&serv_addr, &socklen);
         int sock_index;
         for(int i = 0; i < MAX_CLIENT; i++){
@@ -149,7 +150,7 @@ int main(int argc , char *argv[])
             }
         }
         if(sockclit > 0) INFO("Get New Connection");
-
+		/*create thread to handle client's request*/
         if(pthread_create(&daemon_thread[i++], NULL, daemon_accept_client, &sock_index) != 0)
             INFO("Failed to create thread");
     }
