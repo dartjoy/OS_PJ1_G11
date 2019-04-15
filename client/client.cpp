@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include <fstream>
 using namespace std;
@@ -25,6 +26,14 @@ using namespace std;
 const char* config_filename="../config.txt";
 int sockfd = 0;
 
+void Exit(int sig){
+    char msg[MAX_MESSAGE] = "exit";
+    send(sockfd, msg, strlen(msg), 0);
+    cout << "\rGoodbye!" << endl;
+    close(sockfd);
+    exit(0);
+}
+
 void* daemon_recv(void* data){ //keep receive message from server
     char re[MAX_MESSAGE] = "";
     while(1){
@@ -35,6 +44,7 @@ void* daemon_recv(void* data){ //keep receive message from server
         else{
             INFO("Connection Treminate!");
             close(sockfd);
+            Exit(0);
             break;
         }
     }
@@ -43,6 +53,7 @@ void* daemon_recv(void* data){ //keep receive message from server
 
 int main(int argc , char *argv[])
 {
+    signal(SIGINT, Exit);
     char hostname[HOST_MAX_LEN];
     char port_number[HOST_MAX_LEN];
     FILE *fp = fopen(config_filename, "r");
@@ -90,11 +101,8 @@ int main(int argc , char *argv[])
                 while(1){
                     memset((void*)msg, 0, sizeof(msg));
                     cin.getline(msg, MAX_MESSAGE);
-                    if( strncmp(msg, "exit", MAX_MESSAGE) == 0 ){ //client terminate condition
-                        strcpy(msg, "exit");
-                        send(sockfd, msg, strlen(msg), 0);
+                    if( strncmp(msg, "exit", MAX_MESSAGE) == 0 ) //client terminate condition
                         break;
-                    }
                     cout << "\033[A\33[2k"; // Move cursor to previous line and clear it
                     send(sockfd, msg, strlen(msg), 0);
                 }
@@ -104,6 +112,6 @@ int main(int argc , char *argv[])
         }
     }
     freeaddrinfo(res);
-    close(sockfd);
+    Exit(0);
     return 0;
 }
