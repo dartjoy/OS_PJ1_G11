@@ -8,6 +8,8 @@
 #include<sys/types.h>
 #include<unistd.h>
 #include <signal.h>
+#include <chrono>
+#include <ctime>
 
 #include<pthread.h>
 
@@ -44,6 +46,7 @@ void* daemon_accept_client(void* data){ //thread that handle the request
     int newSocket = sock_clients[newSocket_index];
     bool greeting_msg = true;
     bool client_alive = true;
+
     while(client_alive){
         if( recv(newSocket, client_message, MAX_MESSAGE, 0) > 0 ){
             char *message = (char *)(malloc(sizeof(client_message) + 20));
@@ -71,10 +74,11 @@ void* daemon_accept_client(void* data){ //thread that handle the request
             } 
             
             pthread_mutex_lock(&lock); //cretical section(only one thread can access buffer and send message to other client at a time)
+
+			std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
             strcpy(buffer, message);
-			save << message <<endl; //save message to database
-            free(message);
-            memset((void *)&client_message, 0, sizeof(client_message));
+			save << std::ctime(&now) << message << endl; //save message to database
 
             for(int i = 0; i < MAX_CLIENT; i++){ //broadcast
                 if( sock_clients[i] != 0 ){
@@ -82,7 +86,10 @@ void* daemon_accept_client(void* data){ //thread that handle the request
                 }
             }
 
+            free(message);
+            memset((void *)&client_message, 0, sizeof(client_message));
             memset((void *)&buffer, 0, sizeof(buffer));
+
             pthread_mutex_unlock(&lock);	  
         }
     }	

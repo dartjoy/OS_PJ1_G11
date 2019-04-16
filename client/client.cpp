@@ -34,26 +34,23 @@ void Exit(int sig){
     exit(0);
 }
 
-void* daemon_recv(void* data){ //keep receive message from server
+void* daemon_recv(void* data){ //keep receiving message from server
     char re[MAX_MESSAGE] = "";
     while(1){
         if( recv(sockfd, re, MAX_MESSAGE, 0) > 0 ){
             MSG(re);
             memset((void*)re, 0, sizeof(re));
         }
-        else{
-            INFO("Connection Treminate!");
-            close(sockfd);
-            Exit(0);
-            break;
+        else{ //connection terminate
+    		pthread_exit(NULL);
         }
     }
-    pthread_exit(NULL);
 }
 
 int main(int argc , char *argv[])
 {
     signal(SIGINT, Exit);
+
     char hostname[HOST_MAX_LEN];
     char port_number[HOST_MAX_LEN];
     FILE *fp = fopen(config_filename, "r");
@@ -101,8 +98,11 @@ int main(int argc , char *argv[])
                 while(1){
                     memset((void*)msg, 0, sizeof(msg));
                     cin.getline(msg, MAX_MESSAGE);
-                    if( strncmp(msg, "exit", MAX_MESSAGE) == 0 ) //client terminate condition
+                    if( strncmp(msg, "exit", MAX_MESSAGE) == 0 ){ //client terminate condition
+                    	cout << "\033[A\33[k";
+						Exit(0);
                         break;
+					}
                     cout << "\033[A\33[2k"; // Move cursor to previous line and clear it
                     send(sockfd, msg, strlen(msg), 0);
                 }
